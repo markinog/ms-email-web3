@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Validar codigo</title>
+    <style>
+        body { font-family: sans-serif; max-width: 420px; margin: 80px auto; padding: 0 16px; }
+        h1 { font-size: 1.4rem; }
+        form { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+        input { padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
+        button { padding: 10px; font-size: 1rem; background: #2d6cdf; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #2256bf; }
+        .msg { margin-top: 16px; min-height: 20px; }
+        .error { color: #c0392b; }
+        .success { color: #1e8449; }
+    </style>
+</head>
+<body>
+    <h1>Validar codigo</h1>
+    <p>Enviamos um codigo para <strong id="emailLabel"></strong>. Digite-o abaixo.</p>
+    <form id="verifyForm">
+        <input type="email" id="email" name="email" required>
+        <input type="text" id="code" name="code" placeholder="000000" maxlength="6" pattern="\d{6}" required>
+        <button type="submit">Validar</button>
+    </form>
+    <div class="msg" id="msg"></div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('email') || '';
+        document.getElementById('email').value = email;
+        document.getElementById('emailLabel').textContent = email;
+
+        const form = document.getElementById('verifyForm');
+        const msg = document.getElementById('msg');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            msg.className = 'msg';
+            msg.textContent = 'Validando...';
+
+            try {
+                const res = await fetch('/verify-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        code: document.getElementById('code').value
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.ok && data.token) {
+                    sessionStorage.setItem('token', data.token);
+                    msg.className = 'msg success';
+                    msg.textContent = 'Codigo validado! Redirecionando...';
+                    window.location.href = '/dashboard';
+                } else {
+                    msg.className = 'msg error';
+                    msg.textContent = data.message || 'Codigo invalido ou expirado.';
+                }
+            } catch (err) {
+                msg.className = 'msg error';
+                msg.textContent = 'Erro de conexao com o servidor.';
+            }
+        });
+    </script>
+</body>
+</html>

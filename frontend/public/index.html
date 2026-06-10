@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Solicitar codigo</title>
+    <style>
+        body { font-family: sans-serif; max-width: 420px; margin: 80px auto; padding: 0 16px; }
+        h1 { font-size: 1.4rem; }
+        form { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+        input { padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
+        button { padding: 10px; font-size: 1rem; background: #2d6cdf; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #2256bf; }
+    </style>
+</head>
+<body>
+    <h1>Receber codigo por e-mail</h1>
+    <p>Digite seu e-mail para receber um codigo de verificacao de 6 digitos.</p>
+    <form action="/send-code" method="post">
+        <input type="email" name="email" placeholder="seuemail@exemplo.com" required>
+        <button type="submit">Enviar codigo</button>
+    </form>
+</body>
+</html>
