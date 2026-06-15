@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cadastro de perfil</title>
+    <style>
+        body { font-family: sans-serif; max-width: 420px; margin: 80px auto; padding: 0 16px; }
+        h1 { font-size: 1.4rem; }
+        form { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+        input, select { padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
+        button { padding: 10px; font-size: 1rem; background: #2d6cdf; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #2256bf; }
+        .msg { margin-top: 16px; min-height: 20px; }
+        .error { color: #c0392b; }
+        .success { color: #1e8449; }
+    </style>
+</head>
+<body>
+    <h1>Complete seu cadastro</h1>
+    <p>Informe seu nome e selecione seu cargo para acessar o painel.</p>
+    <form id="registerForm">
+        <input type="text" id="name" name="name" placeholder="Seu nome completo" required>
+        <select id="role" name="role" required>
+            <option value="ROLE_CUSTOMER">Cliente (ROLE_CUSTOMER)</option>
+            <option value="ROLE_ADMINISTRATOR">Administrador (ROLE_ADMINISTRATOR)</option>
+        </select>
+        <button type="submit">Salvar e continuar</button>
+    </form>
+    <div class="msg" id="msg"></div>
+
+    <script>
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        const form = document.getElementById('registerForm');
+        const msg = document.getElementById('msg');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            msg.className = 'msg';
+            msg.textContent = 'Salvando...';
+
+            try {
+                const res = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        name: document.getElementById('name').value,
+                        role: document.getElementById('role').value
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.ok) {
+                    msg.className = 'msg success';
+                    msg.textContent = 'Perfil atualizado! Redirecionando...';
+                    window.location.href = '/dashboard';
+                } else {
+                    msg.className = 'msg error';
+                    msg.textContent = data.message || 'Nao foi possivel salvar o perfil.';
+                }
+            } catch (err) {
+                msg.className = 'msg error';
+                msg.textContent = 'Erro de conexao com o servidor.';
+            }
+        });
+    </script>
+</body>
+</html>

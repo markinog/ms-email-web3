@@ -55,7 +55,7 @@
                     sessionStorage.setItem('token', data.token);
                     msg.className = 'msg success';
                     msg.textContent = 'Codigo validado! Redirecionando...';
-                    window.location.href = '/dashboard';
+                    window.location.href = '/register';
                 } else {
                     msg.className = 'msg error';
                     msg.textContent = data.message || 'Codigo invalido ou expirado.';

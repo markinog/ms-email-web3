@@ -43,6 +43,71 @@ app.post('/verify-code', async (req, res) => {
     }
 });
 
+// ==================== Etapa 4: cadastro de perfil ====================
+
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'register.html'));
+});
+
+// Recebe name e role do cliente e repassa para o User Service com o JWT.
+app.post('/register', async (req, res) => {
+    const { name, role } = req.body;
+    const auth = req.headers.authorization;
+    if (!auth) {
+        return res.status(401).json({ ok: false, message: 'Token ausente. Faca login novamente.' });
+    }
+    try {
+        const response = await axios.post(
+            `${USER_SERVICE_URL}/users/update-profile`,
+            { name, role },
+            { headers: { Authorization: auth } }
+        );
+        res.json({ ok: true, profile: response.data });
+    } catch (err) {
+        console.error('[register] falha ao chamar User Service:', err.response?.status, err.response?.data || err.code || err.message);
+        const message = err.response?.data?.error || err.response?.data?.message || 'Nao foi possivel atualizar o perfil.';
+        res.status(err.response?.status || 400).json({ ok: false, message });
+    }
+});
+
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+// Proxy para endpoint protegido do User Service.
+app.get('/api/protected', async (req, res) => {
+    const auth = req.headers.authorization;
+    if (!auth) {
+        return res.status(401).json({ ok: false, message: 'Token ausente.' });
+    }
+    try {
+        const response = await axios.get(`${USER_SERVICE_URL}/users/test/customer`, {
+            headers: { Authorization: auth }
+        });
+        res.status(response.status).json({ ok: true, data: response.data });
+    } catch (err) {
+        const message = err.response?.data?.error || err.response?.data?.message || 'Acesso negado ao endpoint protegido.';
+        res.status(err.response?.status || 401).json({ ok: false, message });
+    }
+});
+
+// Proxy para o perfil do usuario logado.
+app.get('/api/me', async (req, res) => {
+    const auth = req.headers.authorization;
+    if (!auth) {
+        return res.status(401).json({ ok: false, message: 'Token ausente.' });
+    }
+    try {
+        const response = await axios.get(`${USER_SERVICE_URL}/users/me`, {
+            headers: { Authorization: auth }
+        });
+        res.status(response.status).json(response.data);
+    } catch (err) {
+        const message = err.response?.data?.error || err.response?.data?.message || 'Nao foi possivel carregar o perfil.';
+        res.status(err.response?.status || 401).json({ ok: false, message });
+    }
+});
+
 function renderError(title, message, backUrl) {
     return `<!DOCTYPE html>
 <html lang="pt-br">
